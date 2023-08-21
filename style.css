@@ -1,0 +1,62 @@
+/* Reset default margin and padding */
+body, h1, h2, h3, p, table, th, td {
+    margin: 0;
+    padding: 0;
+}
+
+/* Set the background colors */
+body {
+    background-color: #F0F0F0; /* Light Grey */
+}
+
+.container {
+    max-width: 70%; /* Centered container with 15% space on each side */
+    margin: 0 auto; /* Center the container horizontally */
+    padding: 20px; /* Add some padding inside the container */
+    background-color: #E6F7FF; /* Light Blue */
+    border-radius: 10px; /* Rounded corners for a cleaner look */
+    box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.1); /* Subtle shadow */
+    text-align: center; /* Center the content inside the container */
+    color: #333; /* Dark text color */
+}
+
+/* Additional styling for specific elements if needed */
+h2 {
+    color: #007BFF; /* Blue */
+    margin-bottom: 20px; /* Add spacing below the heading */
+}
+
+form {
+    margin-top: 20px; /* Add spacing above the form */
+}
+
+table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 20px;
+}
+
+th, td {
+    padding: 10px;
+    text-align: left;
+    border-bottom: 1px solid #ccc;
+}
+
+/* Style navigation links */
+nav {
+    background-color: #007BFF; /* Blue */
+    padding: 10px 0;
+    text-align: center;
+}
+
+nav a {
+    color: white;
+    text-decoration: none;
+    margin: 0 10px;
+}
+
+/* Style error messages */
+p.error {
+    color: red;
+    margin-top: 10px;
+}
