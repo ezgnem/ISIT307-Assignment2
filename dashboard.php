@@ -103,17 +103,12 @@ function getCurrentCapacity($serviceID) {
     <div class="container">
         <nav>
             <?php if ($userType === "administrator") { ?>
-                <a href="services_management.php">Manage Services</a> |
                 <a href="list_all_users.php">List All Users</a> |
             <?php } ?>
             <a href="logout.php">Logout</a>
         </nav>
 
         <h2>Welcome to the Dashboard, <?php echo $userType; ?></h2>
-
-        <?php if ($userType === "administrator") { ?>
-            <a href="services_management.php">Manage Services</a>
-        <?php } ?>
 
         <h3>Search Services</h3>
         <form action="<?php echo $_SERVER['PHP_SELF']; ?>" method="post">
@@ -155,37 +150,44 @@ function getCurrentCapacity($serviceID) {
                 <th>Capacity</th>
                 <th>Cost</th>
                 <th>Late Cost</th>
-                <th>Time</th>
-                <th>Check In/Check Out</th>
+                <?php if ($userType === "member") { ?>
+                    <th>Time</th>
+                    <th>Check In/Check Out</th>
+                <?php } else if ($userType === "administrator") { ?>
+                    <th>Check Users</th>
+                <?php } ?>
             </tr>
             <?php
             while ($row = $servicesResult->fetch_assoc()) {
-                if (getCurrentCapacity($serviceID) < $row['capacity']) {
-                    echo "<tr>";
-                    echo "<td>" . $row['serviceID'] . "</td>";
-                    echo "<td>" . $row['name'] . "</td>";
-                    echo "<td>" . $row['description'] . "</td>";
-                    echo "<td>" . $row['capacity'] . "</td>";
-                    echo "<td>" . $row['cost'] . "</td>";
-                    echo "<td>" . $row['lateCost'] . "</td>";
+                echo "<tr>";
+                echo "<td>" . $row['serviceID'] . "</td>";
+                echo "<td>" . $row['name'] . "</td>";
+                echo "<td>" . $row['description'] . "</td>";
+                echo "<td>" . $row['capacity'] . "</td>";
+                echo "<td>" . $row['cost'] . "</td>";
+                echo "<td>" . $row['lateCost'] . "</td>";
 
-                    if ($userType === "member") {
-                        if (isCheckedIn($_SESSION['user_email'], $row['serviceID'])) {
-                            echo "<form action='check_out.php' method='post'>";
-                            echo "<input type='hidden' name='serviceID' value='" . $row['serviceID'] . "'>";
-                            echo "<td><input type='datetime-local' name='datetime'></td>";
-                            echo "<td><input type='submit' value='Check-Out'></td>";
-                            echo "</form>";
-                        } else {
-                            echo "<form action='check_in.php' method='post'>";
-                            echo "<input type='hidden' name='serviceID' value='" . $row['serviceID'] . "'>";
-                            echo "<td><input type='datetime-local' name='datetime'></td>";
-                            echo "<td><input type='submit' value='Check-In'></td>";
-                            echo "</form>";
-                        }
+                if ($userType === "member") {
+                    if (isCheckedIn($_SESSION['user_email'], $row['serviceID'])) {
+                        echo "<form action='check_out.php' method='post'>";
+                        echo "<input type='hidden' name='serviceID' value='" . $row['serviceID'] . "'>";
+                        echo "<td><input type='datetime-local' name='datetime'></td>";
+                        echo "<td><input type='submit' value='Check-Out'></td>";
+                        echo "</form>";
+                    } else if (getCurrentCapacity($row['serviceID']) < $row['capacity']) {
+                        echo "<form action='check_in.php' method='post'>";
+                        echo "<input type='hidden' name='serviceID' value='" . $row['serviceID'] . "'>";
+                        echo "<td><input type='datetime-local' name='datetime'></td>";
+                        echo "<td><input type='submit' value='Check-In'></td>";
+                        echo "</form>";
                     }
-                    echo "</tr>";
+                } else if ($userType === "administrator") {
+                    echo "<form action='list_user_by_service.php' method='post'>";
+                    echo "<input type='hidden' name='serviceID' value='" . $row['serviceID'] . "'>";
+                    echo "<td><input type='submit' value='Check Users'></td>";
+                    echo "</form>";
                 }
+                echo "</tr>";
             }
             ?>
         </table>

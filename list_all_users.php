@@ -7,9 +7,25 @@ if (!isset($_SESSION["user_email"]) || $_SESSION["user_type"] !== "administrator
 
 include 'database_connection.php';
 
-// Retrieve all members from the database
-$getMembersSQL = "SELECT * FROM users WHERE type = 'member'";
-$membersResult = $dbconn->query($getMembersSQL);
+// Handle user search
+$searchQuery = "";
+if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST["search_query"])) {
+    $searchQuery = $_POST["search_query"];
+    $searchMembersSQL = "
+        SELECT * FROM users
+        WHERE type = 'member' AND (
+            name LIKE '%$searchQuery%'
+            OR surname LIKE '%$searchQuery%'
+            OR phone LIKE '%$searchQuery%'
+            OR email LIKE '%$searchQuery%'
+        )
+    ";
+} else {
+    // Retrieve all members from the database
+    $searchMembersSQL = "SELECT * FROM users WHERE type = 'member'";
+}
+
+$membersResult = $dbconn->query($searchMembersSQL);
 ?>
 
 <!DOCTYPE html>
@@ -22,13 +38,18 @@ $membersResult = $dbconn->query($getMembersSQL);
     <div class="container">
         <nav>
             <?php if ($_SESSION["user_type"] === "administrator") { ?>
-                <a href="dashboard.php">Dashboard</a> | <!-- Update this line -->
-                <a href="list_all_users.php">List All Users</a> |
+                <a href="dashboard.php">Dashboard</a> |
             <?php } ?>
             <a href="logout.php">Logout</a>
         </nav>
 
         <h2>List All Users</h2>
+        <form action="" method="post">
+            <label for="search_query">Search Users:</label>
+            <input type="text" id="search_query" name="search_query" value="<?php echo $searchQuery; ?>">
+            <input type="submit" value="Search">
+        </form>
+
         <table border="1">
             <tr>
                 <th>Name</th>
