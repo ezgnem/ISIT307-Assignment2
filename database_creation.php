@@ -58,7 +58,7 @@ $createRecordsTableSQL = "
         serviceID INT NOT NULL,
         checkInTime DATETIME NOT NULL,
         checkOutTime DATETIME,
-        duration TIME,
+        intendedUseDuration INT,
         FOREIGN KEY (userEmail) REFERENCES users(email),
         FOREIGN KEY (serviceID) REFERENCES services(serviceID)
     )

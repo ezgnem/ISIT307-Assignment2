@@ -69,7 +69,7 @@ function isCheckedIn($userEmail, $serviceID) {
 }
 
 function getCurrentCapacity($serviceID) {
-    include 'database_connection.php'; // Include your database connection here
+    include 'database_connection.php';
 
     $countCheckedInSQL = "
         SELECT COUNT(*) AS checkedInCount FROM records
@@ -91,6 +91,52 @@ function getCurrentCapacity($serviceID) {
     return $currentCapacity;
 }
 
+function getIntendedUseDuration($serviceID) {
+    include 'database_connection.php';
+
+    $countCheckedInSQL = "
+        SELECT * FROM records
+        WHERE userEmail = ? AND serviceID = ? AND checkOutTime IS NULL
+    ";
+
+    $stmt = $dbconn->prepare($checkInStatusSQL);
+    $stmt->bind_param("si", $userEmail, $serviceID);
+
+    $stmt->execute();
+    $result = $stmt->get_result();
+
+    $row = $result->fetch_assoc();
+    $intendedUseDuration = $row['intendedUseDuration'];
+
+    $stmt->close();
+    $dbconn->close();
+
+    return $intendedUseDuration;
+}
+
+function getCheckInTime($serviceID) {
+    include 'database_connection.php';
+
+    $countCheckedInSQL = "
+        SELECT * FROM records
+        WHERE userEmail = ? AND serviceID = ? AND checkOutTime IS NULL
+    ";
+
+    $stmt = $dbconn->prepare($checkInStatusSQL);
+    $stmt->bind_param("si", $userEmail, $serviceID);
+
+    $stmt->execute();
+    $result = $stmt->get_result();
+
+    $row = $result->fetch_assoc();
+    $checkInTime = $row['checkInTime'];
+
+    $stmt->close();
+    $dbconn->close();
+
+    return $checkInTime;
+}
+
 ?>
 
 <!DOCTYPE html>
@@ -98,12 +144,23 @@ function getCurrentCapacity($serviceID) {
 <head>
     <title>User Dashboard</title>
     <link rel="stylesheet" type="text/css" href="style.css">
+    <script>
+        function showCost(form, cost, lateCost) {
+            const intendedUseDuration = parseInt(form.intendedUseDuration.value);
+            const datetime = new Date(form.datetime.value);
+            const newTime = datetime.getTime() + intendedUseDuration * 60 * 60 * 1000;
+
+            alert(`Checkout Time without pentalty: ${new Date(newTime)}\nHourly Cost: ${cost}\nHourly Late Cost: ${lateCost}`);
+            return true;
+        }
+    </script>
 </head>
 <body>
     <div class="container">
         <nav>
             <?php if ($userType === "administrator") { ?>
                 <a href="list_all_users.php">List All Users</a> |
+                <a href="add_service.php">Add service</a> |
             <?php } ?>
             <a href="logout.php">Logout</a>
         </nav>
@@ -151,6 +208,7 @@ function getCurrentCapacity($serviceID) {
                 <th>Cost</th>
                 <th>Late Cost</th>
                 <?php if ($userType === "member") { ?>
+                    <th>Intended Use Duration (hr)</th>
                     <th>Time</th>
                     <th>Check In/Check Out</th>
                 <?php } else if ($userType === "administrator") { ?>
@@ -171,12 +229,14 @@ function getCurrentCapacity($serviceID) {
                     if (isCheckedIn($_SESSION['user_email'], $row['serviceID'])) {
                         echo "<form action='check_out.php' method='post'>";
                         echo "<input type='hidden' name='serviceID' value='" . $row['serviceID'] . "'>";
+                        echo "<td><input name='intendedUseDuration' type='number'></td>";
                         echo "<td><input type='datetime-local' name='datetime'></td>";
                         echo "<td><input type='submit' value='Check-Out'></td>";
                         echo "</form>";
                     } else if (getCurrentCapacity($row['serviceID']) < $row['capacity']) {
-                        echo "<form action='check_in.php' method='post'>";
+                        echo "<form action='check_in.php' method='post' onsubmit='return showCost(this, {$row['cost']}, {$row['lateCost']});'>";
                         echo "<input type='hidden' name='serviceID' value='" . $row['serviceID'] . "'>";
+                        echo "<td><input name='intendedUseDuration' type='number'></td>";
                         echo "<td><input type='datetime-local' name='datetime'></td>";
                         echo "<td><input type='submit' value='Check-In'></td>";
                         echo "</form>";
@@ -185,6 +245,11 @@ function getCurrentCapacity($serviceID) {
                     echo "<form action='list_user_by_service.php' method='post'>";
                     echo "<input type='hidden' name='serviceID' value='" . $row['serviceID'] . "'>";
                     echo "<td><input type='submit' value='Check Users'></td>";
+                    echo "</form>";
+
+                    echo "<form action='edit_service.php' method='get'>";
+                    echo "<input type='hidden' name='serviceID' value='" . $row['serviceID'] . "'>";
+                    echo "<td><input type='submit' value='Edit'></td>";
                     echo "</form>";
                 }
                 echo "</tr>";
